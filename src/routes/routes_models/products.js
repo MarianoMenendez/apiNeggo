@@ -7,8 +7,8 @@ const server = require("../../server");
 const { Products } = require("../../database/db")
 const axios = require("axios")
 const router = Router()
+const { Op } = require('sequelize');
 require('dotenv').config()
-
 
 const { KEY } = process.env
 
@@ -132,6 +132,24 @@ router.post("/image", async (req,res)=>{
   catch(error){
     console.log(error)
     res.status(400).send(error)
+  }
+})
+router.get("/", async (req,res)=>{
+  try{
+  const { name } = req.query
+  console.log(name)
+  const product = await Products.findAll({
+    where: { 
+        name: {
+            [Op.iLike]: `%${name}%`
+          }}
+    })
+    const products = product.map(product => product.dataValues )
+    if(!product.length) throw Error(`The product ${name} was not found`) // Error "El pais xxx no se encontró"
+    else res.status(200).json(products)
+  }
+  catch(error){
+    res.status(400).send(error.message)
   }
 })
 
